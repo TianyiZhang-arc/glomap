@@ -11,7 +11,7 @@
 
 #include <colmap/util/file.h>
 #include <colmap/util/timer.h>
-
+#include <fstream>
 namespace glomap {
 
 bool GlobalMapper::Solve(const colmap::Database& database,
@@ -111,6 +111,27 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     run_timer.PrintSeconds();
   }
 
+    ///////////////// tmp ////////////////////////
+    std::string filename_rot = "./tmp/rot_avg.txt";
+    std::ofstream outFile_rot(filename_rot);
+
+    if (!outFile_rot.is_open()) {
+        std::cout << "Failed to open file: " << filename_rot << std::endl;
+    }
+
+    outFile_rot << "# rotation (image_id, rotation): \n";
+    for (const auto& [image_id, image] : images) {
+        outFile_rot<< image_id <<" ";
+        outFile_rot<<image.cam_from_world.rotation.w()<<" ";
+        outFile_rot<<image.cam_from_world.rotation.x()<<" ";
+        outFile_rot<<image.cam_from_world.rotation.y()<<" ";
+        outFile_rot <<image.cam_from_world.rotation.z()<<" "<<std::endl;
+    }
+
+    outFile_rot.close();
+    std::cout << "rotation saved to " << filename_rot << std::endl;
+    ///////////////// tmp ////////////////////////
+
   // 4. Track establishment and selection
   if (!options_.skip_track_establishment) {
     colmap::Timer run_timer;
@@ -129,6 +150,45 @@ bool GlobalMapper::Solve(const colmap::Database& database,
               << ", after filtering: " << num_tracks << std::endl;
 
     run_timer.PrintSeconds();
+
+    ///////////////// tmp ////////////////////////
+    std::string filename_full = "./tmp/tracks_full.txt";
+    std::ofstream outFile_full(filename_full);
+
+    if (!outFile_full.is_open()) {
+        std::cout << "Failed to open file: " << filename_full << std::endl;
+    }
+    outFile_full << "# track_id Observations (image_id, feature_id): \n";
+    for (const auto& [track_id, track] : tracks_full) {
+        outFile_full << track_id <<" ";
+        for (const auto& [image_id, feature_id] : track.observations) {
+            outFile_full << image_id << " " << feature_id << " ";
+        }
+        outFile_full << "\n";
+    }
+
+    outFile_full.close();
+    std::cout << "tracks_full saved to " << filename_full << std::endl;
+
+    std::string filename_selected = "./tmp/tracks_selected.txt";
+    std::ofstream outFile_selected(filename_selected);
+
+    if (!outFile_selected.is_open()) {
+        std::cout << "Failed to open file: " << filename_selected << std::endl;
+    }
+
+    outFile_selected << "# track_id Observations (image_id, feature_id): \n";
+    for (const auto& [track_id, track] : tracks) {
+        outFile_selected << track_id <<" ";
+        for (const auto& [image_id, feature_id] : track.observations) {
+            outFile_selected << image_id << " " << feature_id << " ";
+        }
+        outFile_selected << "\n";
+    }
+
+    outFile_selected.close();
+    std::cout << "tracks_full saved to " << filename_selected << std::endl;
+    ///////////////// tmp ////////////////////////
   }
 
   // 5. Global positioning

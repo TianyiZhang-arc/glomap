@@ -1,6 +1,7 @@
 #include "glomap/estimators/global_positioning.h"
 
 #include "glomap/estimators/cost_function.h"
+#include <fstream>
 
 namespace glomap {
 namespace {
@@ -66,6 +67,40 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   ParameterizeVariables(images, tracks);
 
   LOG(INFO) << "Solving the global positioner problem";
+
+  ///////////////// tmp ////////////////////////
+  std::string filename_trans = "./tmp/random_pose.txt";
+  std::ofstream outFile_trans(filename_trans);
+
+  if (!outFile_trans.is_open()) {
+      std::cout << "Failed to open file: " << filename_trans << std::endl;
+  }
+
+  outFile_trans << "# translation (image_id, translation): \n";
+  for (const auto& [image_id, image] : images) {
+      outFile_trans<< image_id <<" ";
+      outFile_trans<<image.cam_from_world.translation.transpose()<< std::endl;
+  }
+
+  outFile_trans.close();
+  std::cout << "translation saved to " << filename_trans << std::endl;
+
+  std::string filename_selected = "./tmp/tracks_xyz.txt";
+  std::ofstream outFile_selected(filename_selected);
+
+  if (!outFile_selected.is_open()) {
+      std::cout << "Failed to open file: " << filename_selected << std::endl;
+  }
+
+  outFile_selected << "# track_id Observations (image_id, feature_id): \n";
+  for (const auto& [track_id, track] : tracks) {
+      outFile_selected << track_id <<" ";
+      outFile_selected<<track.xyz.transpose()<<std::endl;
+  }
+
+  outFile_selected.close();
+  std::cout << "tracks_full saved to " << filename_selected << std::endl;
+  ///////////////// tmp ////////////////////////
 
   ceres::Solver::Summary summary;
   options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
