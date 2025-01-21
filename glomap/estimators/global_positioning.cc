@@ -68,39 +68,39 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 
   LOG(INFO) << "Solving the global positioner problem";
 
-  ///////////////// tmp ////////////////////////
-  std::string filename_trans = "./tmp/random_pose.txt";
-  std::ofstream outFile_trans(filename_trans);
+  // ///////////////// tmp ////////////////////////
+  // std::string filename_trans = "./tmp/random_pose.txt";
+  // std::ofstream outFile_trans(filename_trans);
 
-  if (!outFile_trans.is_open()) {
-      std::cout << "Failed to open file: " << filename_trans << std::endl;
-  }
+  // if (!outFile_trans.is_open()) {
+  //     std::cout << "Failed to open file: " << filename_trans << std::endl;
+  // }
 
-  outFile_trans << "# translation (image_id, translation): \n";
-  for (const auto& [image_id, image] : images) {
-      outFile_trans<< image_id <<" ";
-      outFile_trans<<image.cam_from_world.translation.transpose()<< std::endl;
-  }
+  // outFile_trans << "# translation (image_id, translation): \n";
+  // for (const auto& [image_id, image] : images) {
+  //     outFile_trans<< image_id <<" ";
+  //     outFile_trans<<image.cam_from_world.translation.transpose()<< std::endl;
+  // }
 
-  outFile_trans.close();
-  std::cout << "translation saved to " << filename_trans << std::endl;
+  // outFile_trans.close();
+  // std::cout << "translation saved to " << filename_trans << std::endl;
 
-  std::string filename_selected = "./tmp/tracks_xyz.txt";
-  std::ofstream outFile_selected(filename_selected);
+  // std::string filename_selected = "./tmp/tracks_xyz.txt";
+  // std::ofstream outFile_selected(filename_selected);
 
-  if (!outFile_selected.is_open()) {
-      std::cout << "Failed to open file: " << filename_selected << std::endl;
-  }
+  // if (!outFile_selected.is_open()) {
+  //     std::cout << "Failed to open file: " << filename_selected << std::endl;
+  // }
 
-  outFile_selected << "# track_id Observations (image_id, feature_id): \n";
-  for (const auto& [track_id, track] : tracks) {
-      outFile_selected << track_id <<" ";
-      outFile_selected<<track.xyz.transpose()<<std::endl;
-  }
+  // outFile_selected << "# track_id Observations (image_id, feature_id): \n";
+  // for (const auto& [track_id, track] : tracks) {
+  //     outFile_selected << track_id <<" ";
+  //     outFile_selected<<track.xyz.transpose()<<std::endl;
+  // }
 
-  outFile_selected.close();
-  std::cout << "tracks_full saved to " << filename_selected << std::endl;
-  ///////////////// tmp ////////////////////////
+  // outFile_selected.close();
+  // std::cout << "tracks_full saved to " << filename_selected << std::endl;
+  // ///////////////// tmp ////////////////////////
 
   ceres::Solver::Summary summary;
   options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
@@ -168,15 +168,25 @@ void GlobalPositioner::InitializeRandomPositions(
     return;
   }
 
+  ///////////////// save ////////////////////////
+  std::string filename_constraint = "./tmp/constrained_positions.txt";
+  std::ofstream outFile_constraint(filename_constraint);
   // Generate random positions for the cameras centers.
   for (auto& [image_id, image] : images) {
     // Only set the cameras to be random if they are needed to be optimized
     if (constrained_positions.find(image_id) != constrained_positions.end())
+    {
       image.cam_from_world.translation =
           100.0 * RandVector3d(random_generator_, -1, 1);
+      outFile_constraint << image_id<<" "<<image.file_name<<" \n";
+    }
     else
       image.cam_from_world.translation = image.Center();
   }
+
+  outFile_constraint.close();
+  std::cout << "constraint saved to " << filename_constraint << std::endl;
+  ///////////////// save ////////////////////////
 
   VLOG(2) << "Constrained positions: " << constrained_positions.size();
 }
@@ -312,6 +322,22 @@ void GlobalPositioner::AddTrackToProblem(
       scale = std::max(1e-5,
                        translation.dot(trans_calc) / trans_calc.squaredNorm());
     }
+  //   ////////////////// tmp //////////////////////////////////
+  // std::string filename_check = "./tmp/check.txt";
+  // std::ofstream outFile_check(filename_check);
+
+  // if (!outFile_check.is_open()) {
+  //     std::cout << "Failed to open file: " << filename_check << std::endl;
+  // }
+
+  // outFile_check<<"track_id: "<<track_id<<" image id: " <<observation.first<<std::endl;
+  // outFile_check<<"ref: "<<translation.transpose()<<std::endl;
+  // outFile_check<<"cam_rotation: "<<image.cam_from_world.rotation<< std::endl;
+  // outFile_check<<"cam feature dist: "<<image.features_undist[observation.second]<<std::endl;
+  // outFile_check<<"cam feature: "<<image.features[observation.second]<<std::endl;
+  // outFile_check<<"cam intrinsic: "<<cameras[image.camera_id].GetK()<<std::endl;
+  // // outFile_check.close();
+  //   ////////////////// tmp //////////////////////////////////
 
     // For calibrated and uncalibrated cameras, use different loss functions
     // Down weight the uncalibrated cameras

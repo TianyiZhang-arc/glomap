@@ -155,7 +155,7 @@ size_t TrackEngine::FindTracksForProblem(
     std::unordered_map<track_t, Track>& tracks_selected) {
   // Sort the tracks by length
   std::vector<std::pair<size_t, track_t>> track_lengths;
-
+  std::cout<<"[FindTrackForProblem, check 0] "<<tracks_full.size()<<std::endl;
   // std::unordered_map<ViewId, std::vector<TrackId>> map_track;
   for (const auto& [track_id, track] : tracks_full) {
     if (track.observations.size() < options_.min_num_view_per_track) continue;
@@ -165,7 +165,7 @@ size_t TrackEngine::FindTracksForProblem(
         std::make_pair(track.observations.size(), track_id));
   }
   std::sort(std::rbegin(track_lengths), std::rend(track_lengths));
-
+  std::cout<<"[FindTrackForProblem, check 1] "<<track_lengths.size()<<std::endl;
   // Initialize the track per camera number to zero
   std::unordered_map<image_t, track_t> tracks_per_camera;
 

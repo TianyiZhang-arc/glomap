@@ -111,7 +111,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     run_timer.PrintSeconds();
   }
 
-    ///////////////// tmp ////////////////////////
+    ///////////////// save ////////////////////////
     std::string filename_rot = "./tmp/rot_avg.txt";
     std::ofstream outFile_rot(filename_rot);
 
@@ -130,7 +130,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     outFile_rot.close();
     std::cout << "rotation saved to " << filename_rot << std::endl;
-    ///////////////// tmp ////////////////////////
+    ///////////////// save ////////////////////////
 
   // 4. Track establishment and selection
   if (!options_.skip_track_establishment) {
@@ -151,25 +151,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     run_timer.PrintSeconds();
 
-    ///////////////// tmp ////////////////////////
-    std::string filename_full = "./tmp/tracks_full.txt";
-    std::ofstream outFile_full(filename_full);
 
-    if (!outFile_full.is_open()) {
-        std::cout << "Failed to open file: " << filename_full << std::endl;
-    }
-    outFile_full << "# track_id Observations (image_id, feature_id): \n";
-    for (const auto& [track_id, track] : tracks_full) {
-        outFile_full << track_id <<" ";
-        for (const auto& [image_id, feature_id] : track.observations) {
-            outFile_full << image_id << " " << feature_id << " ";
-        }
-        outFile_full << "\n";
-    }
-
-    outFile_full.close();
-    std::cout << "tracks_full saved to " << filename_full << std::endl;
-
+    ///////////////// save ////////////////////////
     std::string filename_selected = "./tmp/tracks_selected.txt";
     std::ofstream outFile_selected(filename_selected);
 
@@ -187,8 +170,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     }
 
     outFile_selected.close();
-    std::cout << "tracks_full saved to " << filename_selected << std::endl;
-    ///////////////// tmp ////////////////////////
+    std::cout << "tracks_selected saved to " << filename_selected << std::endl;
+    ///////////////// save ////////////////////////
   }
 
   // 5. Global positioning
