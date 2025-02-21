@@ -40,6 +40,10 @@ struct GlobalMapperOptions {
   bool skip_bundle_adjustment = false;
   bool skip_retriangulation = false;
   bool skip_pruning = true;
+
+  // Control for tmp saving for intermediate results
+  std::string tmp_path = "./";
+
 };
 
 class GlobalMapper {

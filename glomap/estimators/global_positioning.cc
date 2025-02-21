@@ -168,26 +168,6 @@ void GlobalPositioner::InitializeRandomPositions(
     return;
   }
 
-  ///////////////// save ////////////////////////
-  std::string filename_constraint = "./tmp/constrained_positions.txt";
-  std::ofstream outFile_constraint(filename_constraint);
-  // Generate random positions for the cameras centers.
-  for (auto& [image_id, image] : images) {
-    // Only set the cameras to be random if they are needed to be optimized
-    if (constrained_positions.find(image_id) != constrained_positions.end())
-    {
-      image.cam_from_world.translation =
-          100.0 * RandVector3d(random_generator_, -1, 1);
-      outFile_constraint << image_id<<" "<<image.file_name<<" \n";
-    }
-    else
-      image.cam_from_world.translation = image.Center();
-  }
-
-  outFile_constraint.close();
-  std::cout << "constraint saved to " << filename_constraint << std::endl;
-  ///////////////// save ////////////////////////
-
   VLOG(2) << "Constrained positions: " << constrained_positions.size();
 }
 

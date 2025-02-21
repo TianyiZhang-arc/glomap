@@ -79,6 +79,7 @@ void OptionManager::AddGlobalMapperOptions() {
   AddAndRegisterDefaultOption("skip_retriangulation",
                               &mapper->skip_retriangulation);
   AddAndRegisterDefaultOption("skip_pruning", &mapper->skip_pruning);
+  AddAndRegisterDefaultOption("tmp_path", &mapper->tmp_path);
 }
 
 void OptionManager::AddGlobalMapperFullOptions() {

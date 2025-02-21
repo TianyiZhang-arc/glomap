@@ -112,7 +112,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
   }
 
     ///////////////// save ////////////////////////
-    std::string filename_rot = "./tmp/rot_avg.txt";
+    std::string filename_rot = options_.tmp_path + "/rot_avg.txt";
     std::ofstream outFile_rot(filename_rot);
 
     if (!outFile_rot.is_open()) {
@@ -153,7 +153,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
 
     ///////////////// save ////////////////////////
-    std::string filename_selected = "./tmp/tracks_selected.txt";
+    std::string filename_selected = options_.tmp_path + "/tracks_selected.txt";
     std::ofstream outFile_selected(filename_selected);
 
     if (!outFile_selected.is_open()) {
@@ -173,6 +173,42 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     std::cout << "tracks_selected saved to " << filename_selected << std::endl;
     ///////////////// save ////////////////////////
   }
+
+  ///////////////// save ////////////////////////
+  // save constrainted positions
+  std::unordered_set<image_t> constrained_positions;
+  constrained_positions.reserve(images.size());
+  for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
+    if (image_pair.is_valid == false) continue;
+
+    constrained_positions.insert(image_pair.image_id1);
+    constrained_positions.insert(image_pair.image_id2);
+  }
+
+  if (options_.opt_gp.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
+    for (const auto& [track_id, track] : tracks) {
+      if (track.observations.size() < options_.opt_gp.min_num_view_per_track) continue;
+      for (const auto& observation : tracks[track_id].observations) {
+        if (images.find(observation.first) == images.end()) continue;
+        Image& image = images[observation.first];
+        if (!image.is_registered) continue;
+        constrained_positions.insert(observation.first);
+      }
+    }
+  }
+
+  std::string filename_constraint = options_.tmp_path + "/constrained_positions.txt";
+  std::ofstream outFile_constraint(filename_constraint);
+  for (auto& [image_id, image] : images) {
+    if (constrained_positions.find(image_id) != constrained_positions.end())
+    {
+      outFile_constraint << image_id<<" "<<image.file_name<<" \n";
+    }
+  }
+  outFile_constraint.close();
+  std::cout << "constraint saved to " << filename_constraint << std::endl;
+  ///////////////// save ////////////////////////
+
 
   // 5. Global positioning
   if (!options_.skip_global_positioning) {
